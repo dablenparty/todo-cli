@@ -2,7 +2,7 @@ use std::env::current_dir as current_working_dir;
 
 use serde::{Deserialize, Serialize};
 
-pub const TODO_FILE_NAME: &str = ".todos";
+pub const TODO_FILE_NAME: &str = ".todos.ron";
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 #[allow(clippy::module_name_repetitions)]
