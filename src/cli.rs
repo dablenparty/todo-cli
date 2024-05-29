@@ -1,17 +1,18 @@
 use clap::{Parser, Subcommand};
+use strum::VariantArray;
 
 /// This is a simple CLI tool to manage a list of todos.
 /// Running with no arguments will run in interactive mode.
 /// Subcommands are provided for quick access to specific actions.
 #[derive(Debug, Parser)]
 #[command(version, about, author, long_about = None)]
-pub struct CliArgs {
+pub struct Args {
     #[clap(subcommand)]
-    pub subcommand: Option<CliCommand>,
+    pub subcommand: Option<Command>,
 }
 
-#[derive(Debug, Subcommand)]
-pub enum CliCommand {
+#[derive(Debug, Clone, Copy, Subcommand, VariantArray, strum::Display)]
+pub enum Command {
     /// Add a new todo to the list
     Add,
     /// Edit an existing todo
@@ -24,19 +25,19 @@ pub enum CliCommand {
     List,
 }
 
-impl CliCommand {
-    pub fn handle_command(&self) {
+impl Command {
+    pub fn handle_command(self) {
         match self {
-            CliCommand::Add => {
+            Command::Add => {
                 todo!("Adding a new todo");
             }
-            CliCommand::Edit => {
+            Command::Edit => {
                 todo!("Editing an existing todo");
             }
-            CliCommand::Remove => {
+            Command::Remove => {
                 todo!("Removing a todo");
             }
-            CliCommand::List => {
+            Command::List => {
                 todo!("Listing all todos");
             }
         }
