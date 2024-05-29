@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 pub const TODO_FILE_NAME: &str = ".todos.ron";
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 #[allow(clippy::module_name_repetitions)]
 pub struct TodoItem {
     pub id: Uuid,
