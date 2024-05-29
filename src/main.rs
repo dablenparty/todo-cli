@@ -17,7 +17,5 @@ fn main() -> anyhow::Result<()> {
         Select::new("Select an option:", cli::Command::VARIANTS.to_vec()).prompt()?
     };
 
-    command.handle_command();
-
-    Ok(())
+    command.handle_command()
 }

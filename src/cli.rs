@@ -1,5 +1,8 @@
 use clap::{Parser, Subcommand};
+use inquire::Text;
 use strum::VariantArray;
+
+use crate::todo;
 
 /// This is a simple CLI tool to manage a list of todos.
 /// Running with no arguments will run in interactive mode.
@@ -26,11 +29,9 @@ pub enum Command {
 }
 
 impl Command {
-    pub fn handle_command(self) {
+    pub fn handle_command(self) -> anyhow::Result<()> {
         match self {
-            Command::Add => {
-                todo!("Adding a new todo");
-            }
+            Command::Add => handle_add(),
             Command::Edit => {
                 todo!("Editing an existing todo");
             }
@@ -42,4 +43,21 @@ impl Command {
             }
         }
     }
+}
+
+fn handle_add() -> anyhow::Result<()> {
+    let short_desc = Text::new("What do you need to do?").prompt()?;
+    let long_desc = Text::new("Any additional details?").prompt_skippable()?;
+    let todo = todo::TodoItem {
+        short_desc,
+        long_desc,
+        completed: false,
+    };
+
+    let mut todos = todo::read_todo_file()?;
+    todos.push(todo);
+    todo::write_todo_file(&todos)?;
+
+    println!("Todo added successfully!");
+    Ok(())
 }
