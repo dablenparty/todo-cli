@@ -37,11 +37,21 @@ impl Command {
             Command::Remove => {
                 todo!("Removing a todo");
             }
-            Command::List => {
-                todo!("Listing all todos");
-            }
+            Command::List => handle_list(),
         }
     }
+}
+
+fn handle_list() -> Result<(), anyhow::Error> {
+    let todos = todo::read_todo_file()?;
+    if todos.is_empty() {
+        println!("No todos found.");
+    } else {
+        for todo in &todos {
+            println!("{todo}");
+        }
+    }
+    Ok(())
 }
 
 fn handle_edit() -> Result<(), anyhow::Error> {
