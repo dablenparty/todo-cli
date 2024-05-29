@@ -1,7 +1,10 @@
+use std::collections::HashSet;
+
 use anyhow::Context;
 use clap::{Parser, Subcommand};
-use inquire::{Confirm, Select, Text};
+use inquire::{Confirm, MultiSelect, Select, Text};
 use strum::VariantArray;
+use uuid::Uuid;
 
 use crate::todo;
 
@@ -34,12 +37,25 @@ impl Command {
         match self {
             Command::Add => handle_add(),
             Command::Edit => handle_edit(),
-            Command::Remove => {
-                todo!("Removing a todo");
-            }
+            Command::Remove => handle_remove(),
             Command::List => handle_list(),
         }
     }
+}
+
+fn handle_remove() -> Result<(), anyhow::Error> {
+    let mut todos = todo::read_todo_file()?;
+
+    let selections: HashSet<Uuid> = MultiSelect::new("Select todos to remove:", todos.clone())
+        .prompt()?
+        .iter()
+        .map(|i| i.id)
+        .collect();
+
+    todos.retain(|t| !selections.contains(&t.id));
+    todo::write_todo_file(&todos)?;
+
+    Ok(())
 }
 
 fn handle_list() -> Result<(), anyhow::Error> {

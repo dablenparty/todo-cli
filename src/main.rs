@@ -14,7 +14,7 @@ fn main() -> anyhow::Result<()> {
     let command = if let Some(cmd) = cli.subcommand {
         cmd
     } else {
-        Select::new("Select an option:", cli::Command::VARIANTS.to_vec()).prompt()?
+        Select::new("Select a command:", cli::Command::VARIANTS.to_vec()).prompt()?
     };
 
     command.handle_command()
