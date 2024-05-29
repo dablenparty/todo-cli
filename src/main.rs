@@ -2,18 +2,10 @@
 
 use clap::Parser;
 use inquire::Select;
-use serde::{Deserialize, Serialize};
 use strum::VariantArray;
 
 mod cli;
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
-struct TodoItem {
-    pub short_desc: String,
-    pub long_desc: Option<String>,
-    pub completed: bool,
-    // TODO: due date?
-}
+mod todo;
 
 fn main() -> anyhow::Result<()> {
     let cli = cli::Args::parse();
