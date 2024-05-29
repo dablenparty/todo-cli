@@ -1,16 +1,26 @@
 use std::env::current_dir as current_working_dir;
 
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 pub const TODO_FILE_NAME: &str = ".todos.ron";
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 #[allow(clippy::module_name_repetitions)]
 pub struct TodoItem {
+    pub id: Uuid,
     pub short_desc: String,
     pub long_desc: Option<String>,
     pub completed: bool,
     // TODO: due date? uuid?
+}
+
+impl std::fmt::Display for TodoItem {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // TODO: consider emojis for status (you'll have to check for unicode support somehow)
+        let status = if self.completed { "[X]" } else { "[ ]" };
+        write!(f, "{status} {}", self.short_desc)
+    }
 }
 
 /// Read the todo file from the current directory. If the file does not exist, an empty Vec is returned.

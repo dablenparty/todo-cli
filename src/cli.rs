@@ -1,5 +1,6 @@
+use anyhow::Context;
 use clap::{Parser, Subcommand};
-use inquire::Text;
+use inquire::{Confirm, Select, Text};
 use strum::VariantArray;
 
 use crate::todo;
@@ -32,9 +33,7 @@ impl Command {
     pub fn handle_command(self) -> anyhow::Result<()> {
         match self {
             Command::Add => handle_add(),
-            Command::Edit => {
-                todo!("Editing an existing todo");
-            }
+            Command::Edit => handle_edit(),
             Command::Remove => {
                 todo!("Removing a todo");
             }
@@ -45,10 +44,43 @@ impl Command {
     }
 }
 
+fn handle_edit() -> Result<(), anyhow::Error> {
+    let mut todos = todo::read_todo_file()?;
+
+    let selection = Select::new("Select a todo:", todos.clone()).prompt()?;
+    let short_desc = Text::new("What do you need to do?")
+        .with_default(&selection.short_desc)
+        .prompt()?;
+    let long_desc = Text::new("Any additional details?")
+        .with_default(selection.long_desc.as_deref().unwrap_or_default())
+        .prompt_skippable()?;
+    let completed = Confirm::new("Complete?")
+        .with_default(selection.completed)
+        .prompt()?;
+
+    // replace the selected todo with the updated one
+    let index = todos
+        .iter()
+        .position(|t| t.id == selection.id)
+        .context("Failed to relocate edited todo in memory")?;
+    let existing_todo = todos.get(index).unwrap();
+    let updated_todo = todo::TodoItem {
+        id: existing_todo.id,
+        short_desc,
+        long_desc,
+        completed,
+    };
+    todos[index] = updated_todo;
+
+    todo::write_todo_file(&todos)?;
+    Ok(())
+}
+
 fn handle_add() -> anyhow::Result<()> {
     let short_desc = Text::new("What do you need to do?").prompt()?;
     let long_desc = Text::new("Any additional details?").prompt_skippable()?;
     let todo = todo::TodoItem {
+        id: uuid::Uuid::new_v4(),
         short_desc,
         long_desc,
         completed: false,
