@@ -23,3 +23,22 @@ pub enum CliCommand {
     #[command(visible_alias = "ls")]
     List,
 }
+
+impl CliCommand {
+    pub fn handle_command(&self) {
+        match self {
+            CliCommand::Add => {
+                todo!("Adding a new todo");
+            }
+            CliCommand::Edit => {
+                todo!("Editing an existing todo");
+            }
+            CliCommand::Remove => {
+                todo!("Removing a todo");
+            }
+            CliCommand::List => {
+                todo!("Listing all todos");
+            }
+        }
+    }
+}
