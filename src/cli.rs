@@ -104,7 +104,9 @@ fn handle_remove(args: &RemoveArgs) -> Result<(), anyhow::Error> {
         }
     } else {
         let selected_ids: HashSet<Uuid> = loop {
-            let selections = MultiSelect::new("Select todos to remove:", todos.clone()).prompt()?;
+            let selections = MultiSelect::new("Select todos to remove:", todos.clone())
+                .with_formatter(todo::TodoItem::get_multi_select_formatter())
+                .prompt()?;
             if selections.is_empty() {
                 return Ok(());
             }
@@ -175,6 +177,7 @@ fn quick_edit(todos: &mut [todo::TodoItem]) -> Result<(), anyhow::Error> {
         .collect();
     let selection = MultiSelect::new("Select todos to mark as complete:", todos.to_owned())
         .with_default(&completed_indices)
+        .with_formatter(todo::TodoItem::get_multi_select_formatter())
         .prompt()?;
     let selected_ids: HashSet<Uuid> = selection.iter().map(|i| i.id).collect();
     for todo in todos {

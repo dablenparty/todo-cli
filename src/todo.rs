@@ -2,6 +2,7 @@ use std::env::current_dir as current_working_dir;
 
 use chrono::{DateTime, Local};
 use crossterm::style::Stylize;
+use inquire::formatter::MultiOptionFormatter;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -16,6 +17,20 @@ pub struct TodoItem {
     pub completed: bool,
     pub created_at: DateTime<Local>,
     // TODO: due date?
+}
+
+impl TodoItem {
+    /// Provides a formatter for [`inquire::MultiSelect`] to display a list of todo items.
+    /// This formatter will display only the short description of each item.
+    pub const fn get_multi_select_formatter<'a>() -> MultiOptionFormatter<'a, TodoItem> {
+        const FORMATTER: MultiOptionFormatter<'_, TodoItem> = &|l| {
+            l.iter()
+                .map(|t| t.value.short_desc.clone())
+                .collect::<Vec<_>>()
+                .join(", ")
+        };
+        FORMATTER
+    }
 }
 
 impl Default for TodoItem {
