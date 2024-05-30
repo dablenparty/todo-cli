@@ -70,13 +70,17 @@ impl Command {
 fn handle_remove() -> Result<(), anyhow::Error> {
     let mut todos = todo::read_todo_file()?;
 
-    let selections: HashSet<Uuid> = MultiSelect::new("Select todos to remove:", todos.clone())
-        .prompt()?
-        .iter()
-        .map(|i| i.id)
-        .collect();
+    let selected_ids: HashSet<Uuid> = loop {
+        let selections = MultiSelect::new("Select todos to remove:", todos.clone()).prompt()?;
+        let confirm = Confirm::new("Are you sure you want to remove these todos?")
+            .with_default(false)
+            .prompt()?;
+        if confirm {
+            break selections.iter().map(|t| t.id).collect();
+        }
+    };
 
-    todos.retain(|t| !selections.contains(&t.id));
+    todos.retain(|t| !selected_ids.contains(&t.id));
     todo::write_todo_file(&todos)?;
 
     Ok(())
