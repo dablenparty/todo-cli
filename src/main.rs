@@ -15,7 +15,11 @@ fn main() -> anyhow::Result<()> {
     let command = if let Some(cmd) = cli.subcommand {
         cmd
     } else {
-        let disc = Select::new("Select a command:", cli::CommandDiscriminants::VARIANTS.to_vec()).prompt()?;
+        let disc = Select::new(
+            "Select a command:",
+            cli::CommandDiscriminants::VARIANTS.to_vec(),
+        )
+        .prompt()?;
         cli::Command::from(disc)
     };
 
