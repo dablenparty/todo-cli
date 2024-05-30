@@ -98,47 +98,54 @@ fn handle_edit(args: &EditArgs) -> Result<(), anyhow::Error> {
     let mut todos = todo::read_todo_file()?;
 
     if args.full_edit {
-        let selection = Select::new("Select a todo:", todos.clone()).prompt()?;
-        let short_desc = Text::new("What do you need to do?")
-            .with_default(&selection.short_desc)
-            .prompt()?;
-        let long_desc = Text::new("Any additional details?")
-            .with_default(selection.long_desc.as_deref().unwrap_or_default())
-            .prompt_skippable()?;
-        let completed = Confirm::new("Complete?")
-            .with_default(selection.completed)
-            .prompt()?;
-
-        // replace the selected todo with the updated one
-        let index = todos
-            .iter()
-            .position(|t| t.id == selection.id)
-            .context("Failed to relocate edited todo in memory")?;
-        let existing_todo = todos.get(index).unwrap();
-        let updated_todo = todo::TodoItem {
-            id: existing_todo.id,
-            short_desc,
-            long_desc,
-            completed,
-        };
-        todos[index] = updated_todo;
+        full_edit(&mut todos)?;
     } else {
-        let completed_indices: Vec<_> = todos
-            .iter()
-            .enumerate()
-            .filter_map(|(i, t)| if t.completed { Some(i) } else { None })
-            .collect();
-
-        let selection = MultiSelect::new("Select todos to mark as complete:", todos.clone())
-            .with_default(&completed_indices)
-            .prompt()?;
-        let selected_ids: HashSet<Uuid> = selection.iter().map(|i| i.id).collect();
-        for todo in &mut todos {
-            todo.completed = selected_ids.contains(&todo.id);
-        }
+        quick_edit(&mut todos)?;
     };
 
     todo::write_todo_file(&todos)?;
+    Ok(())
+}
+
+fn quick_edit(todos: &mut [todo::TodoItem]) -> Result<(), anyhow::Error> {
+    let completed_indices: Vec<_> = todos
+        .iter()
+        .enumerate()
+        .filter_map(|(i, t)| if t.completed { Some(i) } else { None })
+        .collect();
+    let selection = MultiSelect::new("Select todos to mark as complete:", todos.to_owned())
+        .with_default(&completed_indices)
+        .prompt()?;
+    let selected_ids: HashSet<Uuid> = selection.iter().map(|i| i.id).collect();
+    for todo in todos {
+        todo.completed = selected_ids.contains(&todo.id);
+    }
+    Ok(())
+}
+
+fn full_edit(todos: &mut [todo::TodoItem]) -> Result<(), anyhow::Error> {
+    let selection = Select::new("Select a todo:", todos.to_owned()).prompt()?;
+    let short_desc = Text::new("What do you need to do?")
+        .with_default(&selection.short_desc)
+        .prompt()?;
+    let long_desc = Text::new("Any additional details?")
+        .with_default(selection.long_desc.as_deref().unwrap_or_default())
+        .prompt_skippable()?;
+    let completed = Confirm::new("Complete?")
+        .with_default(selection.completed)
+        .prompt()?;
+    let index = todos
+        .iter()
+        .position(|t| t.id == selection.id)
+        .context("Failed to relocate edited todo in memory")?;
+    let existing_todo = todos.get(index).unwrap();
+    let updated_todo = todo::TodoItem {
+        id: existing_todo.id,
+        short_desc,
+        long_desc,
+        completed,
+    };
+    todos[index] = updated_todo;
     Ok(())
 }
 
