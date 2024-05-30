@@ -123,7 +123,19 @@ fn handle_edit(args: &EditArgs) -> Result<(), anyhow::Error> {
         };
         todos[index] = updated_todo;
     } else {
-        todo!("Quick edit not yet implemented")
+        let completed_indices: Vec<_> = todos
+            .iter()
+            .enumerate()
+            .filter_map(|(i, t)| if t.completed { Some(i) } else { None })
+            .collect();
+
+        let selection = MultiSelect::new("Select todos to mark as complete:", todos.clone())
+            .with_default(&completed_indices)
+            .prompt()?;
+        let selected_ids: HashSet<Uuid> = selection.iter().map(|i| i.id).collect();
+        for todo in &mut todos {
+            todo.completed = selected_ids.contains(&todo.id);
+        }
     };
 
     todo::write_todo_file(&todos)?;
