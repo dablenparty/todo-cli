@@ -53,6 +53,7 @@ impl std::fmt::Display for TodoItem {
         } else {
             desc.red()
         };
+        // https://docs.rs/chrono/latest/chrono/format/strftime/index.html
         write!(f, "{styled} ({})", self.created_at.format("%b %e, %Y %r"))
     }
 }
