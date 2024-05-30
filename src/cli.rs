@@ -2,6 +2,7 @@ use std::collections::HashSet;
 
 use anyhow::Context;
 use clap::{Parser, Subcommand};
+use crossterm::style::Stylize;
 use inquire::{Confirm, MultiSelect, Select, Text};
 use strum::{EnumDiscriminants, VariantArray};
 use uuid::Uuid;
@@ -50,6 +51,8 @@ pub enum Command {
     /// List all todos or apply filters
     #[command(visible_alias = "ls")]
     List,
+    /// Display information about a specific todo
+    Info,
 }
 
 impl From<CommandDiscriminants> for Command {
@@ -59,6 +62,7 @@ impl From<CommandDiscriminants> for Command {
             CommandDiscriminants::Edit => Command::Edit(EditArgs::default()),
             CommandDiscriminants::Remove => Command::Remove(RemoveArgs::default()),
             CommandDiscriminants::List => Command::List,
+            CommandDiscriminants::Info => Command::Info,
         }
     }
 }
@@ -75,8 +79,41 @@ impl Command {
             Command::Edit(args) => handle_edit(&args),
             Command::Remove(args) => handle_remove(&args),
             Command::List => handle_list(),
+            Command::Info => handle_info(),
         }
     }
+}
+
+fn handle_info() -> Result<(), anyhow::Error> {
+    let todos = todo::read_todo_file()?;
+
+    // TODO: validate that there are todos to select
+    //? do this by updating the prompts error message, if possible
+    let selection = Select::new("Select a todo:", todos.clone()).prompt()?;
+
+    let todo::TodoItem {
+        short_desc,
+        long_desc,
+        completed,
+        created_at,
+        ..
+    } = selection;
+    // TODO: extract format options to a constant
+    let create_date_str = created_at.format("%b %e, %Y %r").to_string();
+    let check_or_x = if completed {
+        // a space is added for alignment
+        "✔ ".green()
+    } else {
+        "🗙".red()
+    };
+
+    println!("{check_or_x}{short_desc}");
+    if let Some(long_desc) = long_desc {
+        println!("More info: {long_desc}");
+    }
+    println!("Created: {create_date_str}");
+
+    Ok(())
 }
 
 /// Handle the remove command. This will prompt the user to select todos to remove.
