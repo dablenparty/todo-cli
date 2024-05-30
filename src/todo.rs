@@ -1,5 +1,6 @@
 use std::env::current_dir as current_working_dir;
 
+use crossterm::style::Stylize;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -17,10 +18,13 @@ pub struct TodoItem {
 
 impl std::fmt::Display for TodoItem {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // TODO: consider emojis for status (you'll have to check for unicode support somehow)
-        //? options for fancy display: emojis, colored text
-        let status = if self.completed { "[X]" } else { "[ ]" };
-        write!(f, "{status} {}", self.short_desc)
+        let desc = self.short_desc.as_str();
+        let styled = if self.completed {
+            desc.green()
+        } else {
+            desc.red()
+        };
+        write!(f, "{styled}")
     }
 }
 
