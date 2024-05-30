@@ -1,19 +1,33 @@
 use std::env::current_dir as current_working_dir;
 
+use chrono::{DateTime, Local};
 use crossterm::style::Stylize;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 pub const TODO_FILE_NAME: &str = ".todos.ron";
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 #[allow(clippy::module_name_repetitions)]
 pub struct TodoItem {
     pub id: Uuid,
     pub short_desc: String,
     pub long_desc: Option<String>,
     pub completed: bool,
+    pub created_at: DateTime<Local>,
     // TODO: due date?
+}
+
+impl Default for TodoItem {
+    fn default() -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            short_desc: String::new(),
+            long_desc: None,
+            completed: false,
+            created_at: Local::now(),
+        }
+    }
 }
 
 impl std::fmt::Display for TodoItem {
@@ -24,7 +38,7 @@ impl std::fmt::Display for TodoItem {
         } else {
             desc.red()
         };
-        write!(f, "{styled}")
+        write!(f, "{styled} ({})", self.created_at.format("%b %e, %Y %r"))
     }
 }
 

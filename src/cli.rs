@@ -204,6 +204,7 @@ fn full_edit(todos: &mut [todo::TodoItem]) -> Result<(), anyhow::Error> {
         short_desc,
         long_desc,
         completed,
+        created_at: existing_todo.created_at,
     };
     todos[index] = updated_todo;
     Ok(())
@@ -222,7 +223,6 @@ fn full_edit(todos: &mut [todo::TodoItem]) -> Result<(), anyhow::Error> {
 fn handle_add(args: AddArgs) -> anyhow::Result<()> {
     let todo = if let Some(short_desc) = args.short_desc {
         todo::TodoItem {
-            id: uuid::Uuid::new_v4(),
             short_desc,
             ..Default::default()
         }
@@ -230,10 +230,9 @@ fn handle_add(args: AddArgs) -> anyhow::Result<()> {
         let short_desc = Text::new("What do you need to do?").prompt()?;
         let long_desc = Text::new("Any additional details?").prompt_skippable()?;
         todo::TodoItem {
-            id: uuid::Uuid::new_v4(),
             short_desc,
             long_desc,
-            completed: false,
+            ..Default::default()
         }
     };
 
