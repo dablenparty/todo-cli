@@ -30,6 +30,13 @@ pub struct EditArgs {
     pub full_edit: bool,
 }
 
+#[derive(Debug, Default, Clone, clap::Args)]
+pub struct RemoveArgs {
+    /// Remove all todos.
+    #[arg(short, long)]
+    pub all: bool,
+}
+
 #[derive(Debug, Clone, Subcommand, EnumDiscriminants)]
 #[strum_discriminants(derive(VariantArray, strum::Display))]
 pub enum Command {
@@ -39,7 +46,7 @@ pub enum Command {
     Edit(EditArgs),
     /// Remove a todo from the list
     #[command(visible_alias = "rm")]
-    Remove,
+    Remove(RemoveArgs),
     /// List all todos or apply filters
     #[command(visible_alias = "ls")]
     List,
@@ -50,7 +57,7 @@ impl From<CommandDiscriminants> for Command {
         match disc {
             CommandDiscriminants::Add => Command::Add(AddArgs::default()),
             CommandDiscriminants::Edit => Command::Edit(EditArgs::default()),
-            CommandDiscriminants::Remove => Command::Remove,
+            CommandDiscriminants::Remove => Command::Remove(RemoveArgs::default()),
             CommandDiscriminants::List => Command::List,
         }
     }
@@ -66,7 +73,7 @@ impl Command {
         match self {
             Command::Add(args) => handle_add(args),
             Command::Edit(args) => handle_edit(&args),
-            Command::Remove => handle_remove(),
+            Command::Remove(args) => handle_remove(&args),
             Command::List => handle_list(),
         }
     }
@@ -75,24 +82,45 @@ impl Command {
 /// Handle the remove command. This will prompt the user to select todos to remove.
 /// The user will be prompted to confirm the removal before the todos are removed.
 ///
+/// # Arguments
+///
+/// * `args` - The arguments provided to the remove command.
+///
 /// # Errors
 ///
 /// If the todos cannot be read or written, an error will be returned.
-fn handle_remove() -> Result<(), anyhow::Error> {
+fn handle_remove(args: &RemoveArgs) -> Result<(), anyhow::Error> {
     let mut todos = todo::read_todo_file()?;
 
-    let selected_ids: HashSet<Uuid> = loop {
-        let selections = MultiSelect::new("Select todos to remove:", todos.clone()).prompt()?;
-        let confirm = Confirm::new("Are you sure you want to remove these todos?")
-            .with_default(false)
-            .prompt()?;
+    if args.all {
+        let confirm = Confirm::new(&format!(
+            "Are you sure you want to remove {} todos?",
+            todos.len()
+        ))
+        .with_default(false)
+        .prompt()?;
         if confirm {
-            break selections.iter().map(|t| t.id).collect();
+            todos.clear();
         }
-    };
+    } else {
+        let selected_ids: HashSet<Uuid> = loop {
+            let selections = MultiSelect::new("Select todos to remove:", todos.clone()).prompt()?;
+            if selections.is_empty() {
+                return Ok(());
+            }
+            let confirm = Confirm::new("Are you sure you want to remove these todos?")
+                .with_default(false)
+                .prompt()?;
+            if confirm {
+                break selections.iter().map(|t| t.id).collect();
+            }
+        };
 
-    todos.retain(|t| !selected_ids.contains(&t.id));
+        todos.retain(|t| !selected_ids.contains(&t.id));
+    }
+
     todo::write_todo_file(&todos)?;
+    println!("Todos removed successfully!");
 
     Ok(())
 }
@@ -134,6 +162,8 @@ fn handle_edit(args: &EditArgs) -> Result<(), anyhow::Error> {
     };
 
     todo::write_todo_file(&todos)?;
+    println!("Todos edited successfully!");
+
     Ok(())
 }
 
@@ -210,7 +240,7 @@ fn handle_add(args: AddArgs) -> anyhow::Result<()> {
     let mut todos = todo::read_todo_file()?;
     todos.push(todo);
     todo::write_todo_file(&todos)?;
-
     println!("Todo added successfully!");
+
     Ok(())
 }
