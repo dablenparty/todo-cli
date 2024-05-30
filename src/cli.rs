@@ -57,6 +57,11 @@ impl From<CommandDiscriminants> for Command {
 }
 
 impl Command {
+    /// Handle the command and perform the necessary actions.
+    ///
+    /// # Errors
+    ///
+    /// This function will propagate any errors that occur during the handling of the command.
     pub fn handle_command(self) -> anyhow::Result<()> {
         match self {
             Command::Add(args) => handle_add(args),
@@ -67,6 +72,12 @@ impl Command {
     }
 }
 
+/// Handle the remove command. This will prompt the user to select todos to remove.
+/// The user will be prompted to confirm the removal before the todos are removed.
+///
+/// # Errors
+///
+/// If the todos cannot be read or written, an error will be returned.
 fn handle_remove() -> Result<(), anyhow::Error> {
     let mut todos = todo::read_todo_file()?;
 
@@ -86,6 +97,11 @@ fn handle_remove() -> Result<(), anyhow::Error> {
     Ok(())
 }
 
+/// Handle the list command. This will read the todos from the file and print them to the console.
+///
+/// # Errors
+///
+/// If the todos cannot be read, an error will be returned.
 fn handle_list() -> Result<(), anyhow::Error> {
     let todos = todo::read_todo_file()?;
     if todos.is_empty() {
@@ -98,6 +114,16 @@ fn handle_list() -> Result<(), anyhow::Error> {
     Ok(())
 }
 
+/// Handle the edit command. Depending on the arguments, the user will be prompted to edit a single
+/// todo or simply mark todos as complete. The todos will be written back to the file after editing.
+///
+/// # Arguments
+///
+/// * `args` - The arguments provided to the edit command.
+///
+/// # Errors
+///
+/// If the todos cannot be read or written, an error will be returned.
 fn handle_edit(args: &EditArgs) -> Result<(), anyhow::Error> {
     let mut todos = todo::read_todo_file()?;
 
@@ -153,6 +179,16 @@ fn full_edit(todos: &mut [todo::TodoItem]) -> Result<(), anyhow::Error> {
     Ok(())
 }
 
+/// Handle the add command. This will prompt the user for the necessary information to create a new
+/// todo item. The todo will be written to the file after creation.
+///
+/// # Arguments
+///
+/// * `args` - The arguments provided to the add command.
+///
+/// # Errors
+///
+/// If the todos cannot be read or written, an error will be returned.
 fn handle_add(args: AddArgs) -> anyhow::Result<()> {
     let todo = if let Some(short_desc) = args.short_desc {
         todo::TodoItem {

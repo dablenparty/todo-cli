@@ -24,7 +24,7 @@ impl std::fmt::Display for TodoItem {
     }
 }
 
-/// Read the todo file from the current directory. If the file does not exist, an empty Vec is returned.
+/// Read the todo file from the current directory. If the file does not exist, an empty `Vec` is returned.
 ///
 /// # Errors
 ///
@@ -39,7 +39,7 @@ pub fn read_todo_file() -> anyhow::Result<Vec<TodoItem>> {
     Ok(todos)
 }
 
-/// Write the todo file to the current directory. This will overwrite the existing file.
+/// Write the todos to the file in the current directory. This will overwrite the existing file.
 /// If the file does not exist, it will be created.
 ///
 /// # Errors
