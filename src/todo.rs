@@ -80,10 +80,8 @@ pub fn read_todo_file() -> anyhow::Result<Vec<TodoItem>> {
 ///
 /// This function will return an error if the file cannot be written or if the todos cannot be serialized to RON.
 pub fn write_todo_file(todos: &[TodoItem]) -> anyhow::Result<()> {
-    let mut sorted = todos.to_owned();
-    sorted.sort_by_key(|item| item.short_desc.clone());
     let base_dir = current_working_dir()?;
-    let todo_str = ron::to_string(&sorted)?;
+    let todo_str = ron::to_string(todos)?;
     std::fs::write(base_dir.join(TODO_FILE_NAME), todo_str)?;
     Ok(())
 }
