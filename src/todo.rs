@@ -6,6 +6,9 @@ use inquire::formatter::MultiOptionFormatter;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+#[cfg(debug_assertions)]
+pub const TODO_FILE_NAME: &str = ".todos.debug.ron";
+#[cfg(not(debug_assertions))]
 pub const TODO_FILE_NAME: &str = ".todos.ron";
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
