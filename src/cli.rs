@@ -23,13 +23,20 @@ pub struct AddArgs {
     pub short_desc: Option<String>,
 }
 
+#[derive(Debug, Default, Clone, clap::Args)]
+pub struct EditArgs {
+    /// Edit the full todo item. If not set, only the completion status will be edited.
+    #[arg(short, long = "full")]
+    pub full_edit: bool,
+}
+
 #[derive(Debug, Clone, Subcommand, EnumDiscriminants)]
 #[strum_discriminants(derive(VariantArray, strum::Display))]
 pub enum Command {
     /// Add a new todo to the list
     Add(AddArgs),
     /// Edit an existing todo
-    Edit,
+    Edit(EditArgs),
     /// Remove a todo from the list
     #[command(visible_alias = "rm")]
     Remove,
@@ -42,7 +49,7 @@ impl From<CommandDiscriminants> for Command {
     fn from(disc: CommandDiscriminants) -> Self {
         match disc {
             CommandDiscriminants::Add => Command::Add(AddArgs::default()),
-            CommandDiscriminants::Edit => Command::Edit,
+            CommandDiscriminants::Edit => Command::Edit(EditArgs::default()),
             CommandDiscriminants::Remove => Command::Remove,
             CommandDiscriminants::List => Command::List,
         }
@@ -53,7 +60,7 @@ impl Command {
     pub fn handle_command(self) -> anyhow::Result<()> {
         match self {
             Command::Add(args) => handle_add(args),
-            Command::Edit => handle_edit(),
+            Command::Edit(args) => handle_edit(&args),
             Command::Remove => handle_remove(),
             Command::List => handle_list(),
         }
@@ -87,33 +94,37 @@ fn handle_list() -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-fn handle_edit() -> Result<(), anyhow::Error> {
+fn handle_edit(args: &EditArgs) -> Result<(), anyhow::Error> {
     let mut todos = todo::read_todo_file()?;
 
-    let selection = Select::new("Select a todo:", todos.clone()).prompt()?;
-    let short_desc = Text::new("What do you need to do?")
-        .with_default(&selection.short_desc)
-        .prompt()?;
-    let long_desc = Text::new("Any additional details?")
-        .with_default(selection.long_desc.as_deref().unwrap_or_default())
-        .prompt_skippable()?;
-    let completed = Confirm::new("Complete?")
-        .with_default(selection.completed)
-        .prompt()?;
+    if args.full_edit {
+        let selection = Select::new("Select a todo:", todos.clone()).prompt()?;
+        let short_desc = Text::new("What do you need to do?")
+            .with_default(&selection.short_desc)
+            .prompt()?;
+        let long_desc = Text::new("Any additional details?")
+            .with_default(selection.long_desc.as_deref().unwrap_or_default())
+            .prompt_skippable()?;
+        let completed = Confirm::new("Complete?")
+            .with_default(selection.completed)
+            .prompt()?;
 
-    // replace the selected todo with the updated one
-    let index = todos
-        .iter()
-        .position(|t| t.id == selection.id)
-        .context("Failed to relocate edited todo in memory")?;
-    let existing_todo = todos.get(index).unwrap();
-    let updated_todo = todo::TodoItem {
-        id: existing_todo.id,
-        short_desc,
-        long_desc,
-        completed,
+        // replace the selected todo with the updated one
+        let index = todos
+            .iter()
+            .position(|t| t.id == selection.id)
+            .context("Failed to relocate edited todo in memory")?;
+        let existing_todo = todos.get(index).unwrap();
+        let updated_todo = todo::TodoItem {
+            id: existing_todo.id,
+            short_desc,
+            long_desc,
+            completed,
+        };
+        todos[index] = updated_todo;
+    } else {
+        todo!("Quick edit not yet implemented")
     };
-    todos[index] = updated_todo;
 
     todo::write_todo_file(&todos)?;
     Ok(())
@@ -122,6 +133,7 @@ fn handle_edit() -> Result<(), anyhow::Error> {
 fn handle_add(args: AddArgs) -> anyhow::Result<()> {
     let todo = if let Some(short_desc) = args.short_desc {
         todo::TodoItem {
+            id: uuid::Uuid::new_v4(),
             short_desc,
             ..Default::default()
         }
