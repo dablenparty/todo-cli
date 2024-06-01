@@ -11,7 +11,7 @@ pub const TODO_FILE_NAME: &str = ".todos.debug.ron";
 #[cfg(not(debug_assertions))]
 pub const TODO_FILE_NAME: &str = ".todos.ron";
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[allow(clippy::module_name_repetitions)]
 pub struct TodoItem {
     pub id: Uuid,
