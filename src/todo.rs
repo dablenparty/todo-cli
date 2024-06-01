@@ -11,7 +11,7 @@ pub const TODO_FILE_NAME: &str = ".todos.debug.ron";
 #[cfg(not(debug_assertions))]
 pub const TODO_FILE_NAME: &str = ".todos.ron";
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq)]
 #[allow(clippy::module_name_repetitions)]
 pub struct TodoItem {
     pub id: Uuid,
@@ -20,6 +20,12 @@ pub struct TodoItem {
     pub completed: bool,
     pub created_at: DateTime<Local>,
     // TODO: due date?
+}
+
+impl PartialEq for TodoItem {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
 }
 
 impl TodoItem {
