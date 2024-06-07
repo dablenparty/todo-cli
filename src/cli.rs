@@ -91,15 +91,15 @@ fn handle_info() -> Result<(), anyhow::Error> {
     //? do this by updating the prompts error message, if possible
     let selection = Select::new("Select a todo:", todos.clone()).prompt()?;
 
+    // partially moved by destructuring so this is done before that
+    let create_date_str = selection.get_formatted_date();
+
     let todo::TodoItem {
         short_desc,
         long_desc,
         completed,
-        created_at,
         ..
     } = selection;
-    // TODO: extract format options to a constant
-    let create_date_str = created_at.format("%b %e, %Y %r").to_string();
     let check_or_x = if completed {
         // a space is added for alignment
         "✔ ".green()

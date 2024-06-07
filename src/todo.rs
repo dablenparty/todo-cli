@@ -40,6 +40,11 @@ impl TodoItem {
         };
         FORMATTER
     }
+
+    #[inline]
+    pub fn get_formatted_date(&self) -> String {
+        self.created_at.format("%b %e, %Y %r").to_string()
+    }
 }
 
 impl Default for TodoItem {
@@ -63,7 +68,7 @@ impl std::fmt::Display for TodoItem {
             desc.red()
         };
         // https://docs.rs/chrono/latest/chrono/format/strftime/index.html
-        write!(f, "{styled} ({})", self.created_at.format("%b %e, %Y %r"))
+        write!(f, "{styled} ({})", self.get_formatted_date())
     }
 }
 
