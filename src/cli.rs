@@ -87,8 +87,7 @@ impl Command {
 fn handle_info() -> Result<(), anyhow::Error> {
     let todos = todo::read_todo_file()?;
 
-    // TODO: validate that there are todos to select
-    //? do this by updating the prompts error message, if possible
+    anyhow::ensure!(!todos.is_empty(), "No todos found.");
     let selection = Select::new("Select a todo:", todos.clone()).prompt()?;
 
     // partially moved by destructuring so this is done before that
@@ -140,6 +139,7 @@ fn handle_remove(args: &RemoveArgs) -> Result<(), anyhow::Error> {
             todos.clear();
         }
     } else {
+        anyhow::ensure!(!todos.is_empty(), "No todos found.");
         let selected_ids: HashSet<Uuid> = loop {
             let selections = MultiSelect::new("Select todos to remove:", todos.clone())
                 .with_formatter(todo::TodoItem::get_multi_select_formatter())
